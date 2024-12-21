@@ -3,12 +3,13 @@ import 'package:dio/dio.dart';
 class JokeService {
   final Dio _dio = Dio();
 
-  Future<List<Map<String, dynamic>>> fetchJokesRaw(String jokeType) async {
+  Future<List<Map<String, dynamic>>> fetchJokesRaw(String jokeType, int offset) async {
     try {
       final response = await _dio.get('https://v2.jokeapi.dev/joke/$jokeType',
           queryParameters: {
-            'amount': 5,
+            'amount': 3,
             'blacklistFlags': 'nsfw',
+            'skip': offset,
           });
       if (response.statusCode == 200) {
         final List<dynamic> jokesJson = response.data['jokes'];

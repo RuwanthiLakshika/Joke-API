@@ -39,15 +39,26 @@ class _JokeListPageState extends State<JokeListPage> {
   List<Map<String, dynamic>> _jokeRaw = [];
   bool _isLoading = false;
   String _selectedJokeType = 'Any'; // Default joke type
+  int _jokesFetched = 0; // Track number of jokes fetched
 
   Future<void> _fetchJokes() async {
     setState(() => _isLoading = true);
     try {
-      _jokeRaw = await _jokeService.fetchJokesRaw(_selectedJokeType);
+      final newJokes = await _jokeService.fetchJokesRaw(_selectedJokeType, _jokesFetched);
+      setState(() {
+        _jokeRaw.addAll(newJokes);
+        _jokesFetched += newJokes.length;
+      });
     } catch (e) {
       print('Error fetching jokes: $e');
     }
     setState(() => _isLoading = false);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchJokes();
   }
 
   @override
@@ -91,21 +102,41 @@ class _JokeListPageState extends State<JokeListPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              DropdownButton<String>(
-                value: _selectedJokeType,
-                onChanged: (newValue) {
-                  setState(() {
-                    _selectedJokeType = newValue!;
-                  });
-                },
-                items: <String>['Any', 'Programming', 'Miscellaneous', 'Puns']
-                    .map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-              ),
+              Container(
+                  width: 200, // Adjust the width to your preference
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start, // Align text and dropdown to the start
+                    children: [
+                      Expanded(
+                        child: DropdownButton<String>(
+                          isExpanded: true, // Ensures the button takes up full width
+                          value: _selectedJokeType,
+                          onChanged: (newValue) {
+                            setState(() {
+                              _selectedJokeType = newValue!;
+                              _jokesFetched = 0; // Reset the jokes fetched when type changes
+                              _jokeRaw.clear(); // Clear the previous jokes
+                            });
+                            _fetchJokes(); // Fetch new jokes
+                          },
+                          items: <String>['Any', 'Programming', 'Miscellaneous', 'Puns']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _fetchJokes,
@@ -143,8 +174,21 @@ class _JokeListPageState extends State<JokeListPage> {
       );
     }
     return ListView.builder(
-      itemCount: _jokeRaw.length,
+      itemCount: _jokeRaw.length + 1, // Add one for the loading indicator
       itemBuilder: (context, index) {
+        if (index == _jokeRaw.length) {
+          return _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : GestureDetector(
+                  onTap: _fetchJokes,
+                  child: const Center(
+                    child: Text(
+                      'Tap to load more jokes...',
+                      style: TextStyle(fontSize: 18, color: Colors.deepPurple),
+                    ),
+                  ),
+                );
+        }
         final jokeJson = _jokeRaw[index];
         final jokeText = jokeJson['joke'] ?? jokeJson['setup'] + ' ' + jokeJson['delivery'];
         return Card(
