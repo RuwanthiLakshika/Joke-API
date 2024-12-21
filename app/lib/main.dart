@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'joke_service.dart';
-
 import 'package:flutter/material.dart';
 
 void main() {
@@ -18,16 +17,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const JokeListPage(
-        title: '',
-      ),
+      home: const JokeListPage(title: ''),
     );
   }
 }
 
 class JokeListPage extends StatefulWidget {
   const JokeListPage({super.key, required this.title});
-
   final String title;
 
   @override
@@ -103,40 +99,32 @@ class _JokeListPageState extends State<JokeListPage> {
               ),
               const SizedBox(height: 16),
               Container(
-                  width: 200, // Adjust the width to your preference
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start, // Align text and dropdown to the start
-                    children: [
-                      Expanded(
-                        child: DropdownButton<String>(
-                          isExpanded: true, // Ensures the button takes up full width
-                          value: _selectedJokeType,
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selectedJokeType = newValue!;
-                              _jokesFetched = 0; // Reset the jokes fetched when type changes
-                              _jokeRaw.clear(); // Clear the previous jokes
-                            });
-                            _fetchJokes(); // Fetch new jokes
-                          },
-                          items: <String>['Any', 'Programming', 'Miscellaneous', 'Puns']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ],
-                  ),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple.shade100,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-
+                child: DropdownButton<String>(
+                  isExpanded: true, // Ensures the button takes up full width
+                  value: _selectedJokeType,
+                  onChanged: (newValue) {
+                    setState(() {
+                      _selectedJokeType = newValue!;
+                      _jokesFetched = 0; // Reset the jokes fetched when type changes
+                      _jokeRaw.clear(); // Clear the previous jokes
+                    });
+                    _fetchJokes(); // Fetch new jokes
+                  },
+                  items: <String>['Any', 'Programming', 'Miscellaneous', 'Puns']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+              ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _isLoading ? null : _fetchJokes,
