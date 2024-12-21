@@ -38,11 +38,12 @@ class _JokeListPageState extends State<JokeListPage> {
   final JokeService _jokeService = JokeService();
   List<Map<String, dynamic>> _jokeRaw = [];
   bool _isLoading = false;
+  String _selectedJokeType = 'Any'; // Default joke type
 
   Future<void> _fetchJokes() async {
     setState(() => _isLoading = true);
     try {
-      _jokeRaw = await _jokeService.fetchJokesRaw();
+      _jokeRaw = await _jokeService.fetchJokesRaw(_selectedJokeType);
     } catch (e) {
       print('Error fetching jokes: $e');
     }
@@ -81,13 +82,29 @@ class _JokeListPageState extends State<JokeListPage> {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Click the button to fetch random jokes!',
+                'Choose the type of jokes you want to see:',
                 style: TextStyle(
                   fontSize: 18,
                   fontStyle: FontStyle.italic,
                   color: Colors.deepPurple,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              DropdownButton<String>(
+                value: _selectedJokeType,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedJokeType = newValue!;
+                  });
+                },
+                items: <String>['Any', 'Programming', 'Miscellaneous', 'Puns']
+                    .map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -129,6 +146,7 @@ class _JokeListPageState extends State<JokeListPage> {
       itemCount: _jokeRaw.length,
       itemBuilder: (context, index) {
         final jokeJson = _jokeRaw[index];
+        final jokeText = jokeJson['joke'] ?? jokeJson['setup'] + ' ' + jokeJson['delivery'];
         return Card(
           margin: const EdgeInsets.only(bottom: 16),
           elevation: 4,
@@ -136,8 +154,8 @@ class _JokeListPageState extends State<JokeListPage> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              jsonEncode(jokeJson),
-              style: const TextStyle(fontSize: 14),
+              jokeText,
+              style: const TextStyle(fontSize: 18, color: Colors.deepPurple),
             ),
           ),
         );
